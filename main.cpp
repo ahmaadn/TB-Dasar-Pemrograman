@@ -22,24 +22,26 @@ struct Books {
     string penerbit;
 };
 
-int cek_user(string username);
 void clear();
-bool login(Users *user);
+bool login();
 void daftar_akun();
 vector<Books> list_buku();
+int lihat_buku();
+void update_buku();
+void tambah_buku();
+void delete_buku();
 
 
 int main(){
-    Users user;
     bool auth = false;
     char pilih;
 
     clear();
     while (true) {
         cout << endl;
-        cout << "           Selamat Datang Di Perpustakaan          " << endl;
-        cout << "---------------------------------------------------" << endl; 
-        cout << "Silahkan login terlebih dahulu untuk masuk ke dalam perpustakaan" << endl;
+        cout << "       Selamat Datang Di Perpustakaan      " << endl;
+        cout << "-------------------------------------------" << endl; 
+        cout << "Silahkan login terlebih dahulu untuk masuk \nke dalam perpustakaan" << endl;
         cout << "atau daftar bila tidak mempunyai akun" << endl;
         cout << "1) Login \n2) Daftar \n3) Keluar \n>>> ";
 
@@ -49,7 +51,7 @@ int main(){
         switch (pilih)
         {
         case '1':
-            if (login(&user)){
+            if (login()){
                 auth = true;
             }
             break;
@@ -68,57 +70,28 @@ int main(){
         }
     }
 
-    cout << "Login telah berhasil" << endl;
+    cout << "Login telah berhasil" << endl << endl;
 
     while (auth){
-        clear();
         cout << "       Selamat Datang Di Perpustakaan      " << endl;
         cout << "-------------------------------------------" << endl;
         cout << "1) Daftar Buku \n2) Buat buku \n3) Update buku \n4) Delete buku " << endl;
         cout << "pilih menu: ";
 
         cin >> pilih;
+        clear();
         switch (pilih)
         {
         case '1':
+            lihat_buku();
             break;
         
+        case '2':
+            break;
         default:
             break;
         }
     }
-}
-
-
-int cek_user(string username) {
-    fstream DB_USER(DB_USER_NAME);
-    string line;
-    int i = 1;
-
-    // Melewari baris pertama dalam csv
-    getline(DB_USER, line);
-
-    while (getline(DB_USER, line)) {
-        // Deklarasi variable
-        stringstream ss(line);
-        string get_username;
-
-        // Mencari dan mendapatkan username dari database
-        // int pos = line.find(",");
-        // get_username = line.substr(0, pos);
-        getline(ss, get_username, ';');
-
-        // cek username sama yang ada di database
-        if (get_username == username){
-            // Mengembalikan posisi baris dari username
-            DB_USER.close();
-            return i;
-        }
-        i++;
-    }
-    // Mengembalikan 0 jika username tidak ada dalam database
-    DB_USER.close();
-    return 0;
 }
 
 void clear(){
@@ -126,87 +99,93 @@ void clear(){
     cout << "\e[1;1H\e[2J";
 }
 
-bool login(Users *user){
+bool login(){
     fstream DB_USER(DB_USER_NAME);
+    bool terdaftar = false;
     int i = 0;
 
-    do {
+    while(i < 3) {
         i++;
-        cout << "                       Login                       " << endl
-             << "---------------------------------------------------" << endl;
+        cout << "                   Login                   " << endl
+             << "-------------------------------------------" << endl;
         // Input Username dan Password
         Users auth_user;
+        string line;
         cout << "Username: ";  cin >> auth_user.username;
         cout << "Password: ";  cin >> auth_user.password;
-
         clear();
 
-        // Cek username apakah ada dalam database?
-        // Dalam pengecekan akan mengembalikan posisi baris
-        // dimana username tersebut ada
-        int terdaftar = cek_user(auth_user.username);
-        // Cek apakah username tidak terdaftar
-        if (!terdaftar) {
-            cout << "Username dan password salah" << endl;
-            continue;
-            // return false;
+        // Lewari 1 baris
+        getline(DB_USER, line);
+        
+        // dapatkan username dan password setiap line
+        while (getline(DB_USER, line)) {
+            // Mencari password dan username
+            int pos = line.find(";");
+            string usr = line.substr(0, pos);
+            string pwd = line.substr(pos + 1);
+
+            if (auth_user.username == usr && auth_user.password == pwd) {
+                terdaftar = true;
+                break;
+            }
         }
-
-        // Lewati baris lainnya untuk mencari baris yang telah terdaftar
-        string line;
-        for (int i=0; i <= terdaftar; i++){
-            getline(DB_USER, line);
+        if (terdaftar) {
+            break;
         }
-
-        // Mencari password
-        int pos = line.find(";");    
-        string pwd = line.substr(pos+1);
-
-        // Cek apakah password yang ada di databse dan di input tidak sama
-        // jika tidak lewati
-        if (auth_user.password != pwd){
-            cout << "Username dan password salah" << endl;
-            continue;
-            // return false;
-        }
-
-        // Simpan informasi user ke dalam variable 
-        *user = auth_user;
-        DB_USER.close();
-        return true;
+        cout << "Password dan username salah silahkan coba lagi" << endl;
+        cout << "sisa percobaan: " << 3 - i << "x" << endl;
     
     // Kesempatan login sebanyak 3x
-    } while(i < 3);
-
+    }
     DB_USER.close();
+
+    if (terdaftar) {
+        return true;
+    }
+    clear();
     return false;
 }
 
 void daftar_akun(){
-    int terdaftar;
-    int spasi;
     Users new_user;
+    int spasi;
     
     cout << "           Membuat akun Baru               " << endl
          << "-------------------------------------------" << endl
          << "Pastikan username dan password tida ada spasi." << endl;
 
     while (true) {
+        bool terdaftar = false;
+        string line;
 
         // Input Username
         cout << "Username (new): "; 
         cin >> new_user.username;
-        
-        // jika username telah terdaftar maka
-        // ulang pembuatan username
-        if (cek_user(new_user.username)) {
-            cout << "Akun Telah Terdaftar, coba untuk login." << endl;
+
+        // lewari 1 baris
+        fstream DB_USER(DB_USER_NAME);
+        getline(DB_USER, line);
+
+        // Mencari username yang sama
+        while (getline(DB_USER, line)) {
+            int pos = line.find(";");
+            string usr = line.substr(0, pos);
+            if (usr == new_user.username) {
+                terdaftar = true;
+                break;
+            }
+        }
+        DB_USER.close();
+
+        if (terdaftar) {
+            cout << "Akun Telah terdaftar " << endl;
             continue;
         }
 
         // Mencari spasi di dalam username
         spasi = new_user.username.find(" ");
-        
+
         // Jika tidak ada spasi dan panjang username lebih dari 5
         // maka berhenti
         if (spasi < 0 && new_user.username.length() > 5) {
@@ -276,29 +255,28 @@ vector<Books> list_buku(){
         i++;
         ada = true;
     }
-    if (!ada) {
-        cout << "Silahkan masuk sebagai admin untuk" << endl << "menambahkan buku" << endl;
-    }
     
     DB_BOOK.close();
     return all_books;
 }
 
-int daftar_buku(){
+int lihat_buku(){
     // Header
     while (true) {
-        cout << "====================================" << endl
-             << "             Daftar Buku            " << endl
-             << "------------------------------------" << endl;
+        clear();
+        cout << "                Daftar Buku                " << endl
+             << "-------------------------------------------" << endl;
 
         // Menampilkan semua buku
         // deklarasi variable
-        string pilih_buku, line;
+        char line;
+        string pilih_buku;
         vector<Books> semua_buku = list_buku();
 
-        // Jika buku di perpustakkaan
+        // Jika buku di perpustakkaan tidak ada 
         // return
         if (semua_buku.empty()) {
+            cout << "Silahkan menambahkan buku terlebih dahulu untuk \nmelihat buku" << endl;
             cout << endl <<"Tekan apa saja untuk melanjutkan" << endl;
             cin >> line;
             return 0;
@@ -321,12 +299,10 @@ int daftar_buku(){
 
                 // Mendapatkan buku by index
                 Books curr_buku = semua_buku[pilihan-1];
-
                 clear();
-
                 // Header
-                cout << "                Buku                " << endl
-                     << "------------------------------------" << endl;
+                cout << "                   Buku                    " << endl
+                     << "-------------------------------------------" << endl;
 
                 // Print Informasi buku
                 cout << "Judul: " << curr_buku.judul << endl
@@ -337,7 +313,7 @@ int daftar_buku(){
                      << "Penerbit: " << curr_buku.penerbit << endl;
 
                 // tekan apa saja
-                cout <<"Tekan apa saja untuk melanjutkan" << endl;
+                cout << endl << "Tekan apa saja untuk melanjutkan" << endl;
                 cin >> line;
                 continue;
             
@@ -347,7 +323,7 @@ int daftar_buku(){
             }
         } catch (invalid_argument& e){
             // Menangkap bila terjadi salah input oleh user
-            cout << endl <<"invalid_argument. \nTekan apa saja untuk melanjutkan" << endl;
+            cout << endl <<"invalid argument. \nTekan apa saja untuk melanjutkan" << endl;
             cin >> line;
         }
     }
