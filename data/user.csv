@@ -1,5 +1,3 @@
-username;password;pinjam;isbn;at_pinjam
-admin;admin;null;null;null
-user1;user2;null;null;null
-2206042;itg@garut;null;null;null
-aaaaaa;aaaaaa;null;null;null
+username;password
+admin;admin
+user1;user2
