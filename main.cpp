@@ -182,14 +182,7 @@ void daftar(){
     DB_USER << username << ";" << password << ";null;null;null" << endl;
 }
 
-void garis(int jumlah = 50, string type_baris = "=") {
-    for (int i = 1; i <= jumlah; i++) {
-        cout << type_baris;
-    }
-    cout << endl;
-}
-
-int main(){
+int Daftar_dan_login(){
     Users user;
     string pilih;
 
@@ -226,9 +219,10 @@ int main(){
     }
 }
 
-vector<Books> daftar_buku(){
+vector<Books> list_buku(){
     fstream DB_BOOK(DB_BOOK_NAME);
     string line;
+    bool ada;
     vector<Books> all_books;
     int i = 1;
 
@@ -256,18 +250,24 @@ vector<Books> daftar_buku(){
         // print judul buku
         cout << i << "   " << buku.judul << endl; 
         i++;
+        ada = true;
     }
+    if (!ada) {
+        cout << "Silahkan masuk sebagai admin untuk" << endl;
+             << "menambahkan buku" << endl;
+    }
+    
     DB_BOOK.close();
     return all_books;
 }
 
 void detail_buku(Books *book) {
     Books curr_book = *book;
-    
+
     cout << "====================================" << endl
          << "                Buku                " << endl
          << "------------------------------------" << endl;
-    
+
     cout << "Judul: " << curr_book.judul << endl
          << "ISBN: " << curr_book.isbn << endl
          << "Penulis:" << curr_book.penulis << endl
@@ -277,10 +277,47 @@ void detail_buku(Books *book) {
 }
 
 
-int noneaaa() {
+int daftar_buku(){
+    // Header
+    while (true) {
+        cout << "====================================" << endl
+             << "             Daftar Buku            " << endl
+             << "------------------------------------" << endl;
 
+        // Menampilkan semua buku
+        // deklarasi variable
+        string pilih_buku;
+        vector<Books> semua_buku = list_buku();
 
+        if (semua_buku.empty()) {
+            cout << endl <<"Tekan apa saja untuk melanjutkan" << endl;
+            getline(cin, pilih_buku);
+            return 0;
+        }
 
+        // Detail Buku
+        cout << "Pilih buku untuk melihat detail buku atau" << endl
+                << "input "<< semua_buku.size() + 1 <<" untuk kembali" << endl
+                << ">> ";
+
+        getline(cin, pilih_buku);
+        try {
+            int pilihan = stoi(pilih_buku);
+            if (pilihan >= 1 && pilihan <= semua_buku.size()){
+                detail_buku(&semua_buku[pilihan-1]);
+                getline(cin, pilih_buku);
+                continue;
+            } else if (semua_buku.size() + 1) {
+                return 0;
+            }
+        } catch (invalid_argument& e){
+            cout << "Silahkan Pilih Buku" << endl;
+            getline(cin, pilih_buku);
+        }
+    }
+}
+
+int main() {
     Users user;
     string pilih;
 
@@ -301,34 +338,7 @@ int noneaaa() {
         clear();
 
         if (pilih == "1") {
-            // deklarasi variable
-            string pilih_buku;
-            
-
-            // Header
-            cout << "====================================" << endl
-                 << "             Daftar Buku            " << endl
-                 << "------------------------------------" << endl;
-
-            // Menampilkan semua buku
-            vector<Books> semua_buku = daftar_buku();
-
-            // Detail Buku
-            cout << "Pilih buku untuk melihat detail buku atau" << endl
-                 << "input "<< semua_buku.size() + 1 <<" untuk kembali" << endl
-                 << ">> ";
-            
-            // Input pilihan buku
-            // getline(cin, pilih_buku);
-            
-            // if (pilih_buku == semua_buku.size() + 1) {
-            //     continue;
-            // } else if ( pilih_buku ) {
-
-            // }
-
-            
-
+            daftar_buku();
             clear();
             continue;
         } else if (pilih == "2") {
@@ -337,7 +347,7 @@ int noneaaa() {
 
         } else {
             clear();
-            cout << "Silahkan Pilih Menu yang tersedia";
+            cout << "Silahkan Pilih Menu yang tersedia" << endl;
         }
     }
 }
