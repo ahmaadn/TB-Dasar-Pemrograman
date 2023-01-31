@@ -23,6 +23,7 @@ struct Books {
 };
 
 void clear();
+bool cek_spasi();
 bool login();
 void daftar_akun();
 vector<Books> list_buku();
@@ -99,11 +100,21 @@ void clear(){
     cout << "\e[1;1H\e[2J";
 }
 
+bool cek_spasi(string teks) {
+    for (char c : teks) {
+        if (c == ' ') {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool login(){
     fstream DB_USER(DB_USER_NAME);
     bool terdaftar = false;
     int i = 0;
 
+    // Kesempatan login sebanyak 3x
     while(i < 3) {
         i++;
         cout << "                   Login                   " << endl
@@ -115,10 +126,10 @@ bool login(){
         cout << "Password: ";  cin >> auth_user.password;
         clear();
 
-        // Lewari 1 baris
+        // lewati baris pertama
         getline(DB_USER, line);
         
-        // dapatkan username dan password setiap line
+        // Dapatkan username dan password setiap baris
         while (getline(DB_USER, line)) {
             // Mencari password dan username
             int pos = line.find(";");
@@ -130,13 +141,17 @@ bool login(){
                 break;
             }
         }
+
+        // Untuk Memindahkan pointer file ke posisi awal
+        DB_USER.clear();
+        DB_USER.seekg(0, ios::beg);
+
         if (terdaftar) {
             break;
         }
         cout << "Password dan username salah silahkan coba lagi" << endl;
         cout << "sisa percobaan: " << 3 - i << "x" << endl;
-    
-    // Kesempatan login sebanyak 3x
+        
     }
     DB_USER.close();
 
@@ -183,12 +198,9 @@ void daftar_akun(){
             continue;
         }
 
-        // Mencari spasi di dalam username
-        spasi = new_user.username.find(" ");
-
         // Jika tidak ada spasi dan panjang username lebih dari 5
         // maka berhenti
-        if (spasi < 0 && new_user.username.length() > 5) {
+        if (!cek_spasi(new_user.username) && new_user.username.length() > 5) {
             break;
         }
         // Ulang input ketika username terdapat spasi
@@ -201,19 +213,15 @@ void daftar_akun(){
         cout << "password (new): "; 
         cin >> new_user.password;
         
-        // Cek spasi
-        spasi = new_user.password.find(" ");
-
         // Jika tidak ada spasi dan panjang password lebih dari 5
         // maka berhenti
-        if (spasi < 0 && new_user.password.length() > 5) {
+        if (!cek_spasi(new_user.password) && new_user.password.length() > 5) {
             break;
         }
         // Ulang input ketika terdapat spasi
         // dan password kurang dari 5 huruf 
         cout << "Password tidak boleh pake spasi dan minimal ada 5 huruf" << endl;
     }
-
     cout << "Silahkan login untuk melanjutkan" << endl;
 
     // simpan username dan password ke dalam databse
@@ -225,14 +233,13 @@ void daftar_akun(){
 vector<Books> list_buku(){
     fstream DB_BOOK(DB_BOOK_NAME);
     string line;
-    bool ada;
-    vector<Books> all_books;
+    vector<Books> semua_buku;
     int i = 1;
 
     // Melewati 1 barus
     getline(DB_BOOK, line);
 
-    cout << "No  Judul" << endl;
+    cout << "No | Judul" << endl;
 
     while (getline(DB_BOOK, line)) {
         stringstream ss(line);
@@ -248,16 +255,23 @@ vector<Books> list_buku(){
         getline(ss, buku.penerbit);
 
         // simpan buku di all books
-        all_books.push_back(buku);
+        semua_buku.push_back(buku);
 
         // print judul buku
-        cout << i << "   " << buku.judul << endl; 
+        cout << i << "  | " << buku.judul << endl; 
         i++;
-        ada = true;
     }
-    
+
+    if (semua_buku.empty()) {
+        cout << "           --- TIDAK ADA BUKU ---          " << endl;
+        cout << "Silahkan menambahkan buku terlebih dahulu untuk \nmelihat buku" << endl;
+        cout << endl <<"Input apa saja untuk melanjutkan\n>> ";
+        cin >> line;
+        clear();
+    }
+
     DB_BOOK.close();
-    return all_books;
+    return semua_buku;
 }
 
 int lihat_buku(){
@@ -273,22 +287,17 @@ int lihat_buku(){
         string pilih_buku;
         vector<Books> semua_buku = list_buku();
 
-        // Jika buku di perpustakkaan tidak ada 
-        // return
+        // Kembali ke menu awal jika daftar buku kosong
         if (semua_buku.empty()) {
-            cout << "Silahkan menambahkan buku terlebih dahulu untuk \nmelihat buku" << endl;
-            cout << endl <<"Tekan apa saja untuk melanjutkan" << endl;
-            cin >> line;
             return 0;
         }
 
-        // Detail Buku
-        cout << "Pilih buku untuk melihat detail buku atau" << endl
-                << "input "<< semua_buku.size() + 1 <<" untuk kembali" << endl
-                << ">> ";
+        cout << "Pilih index `1` sampai `" << semua_buku.size() << "` untuk melihat detail buku" << endl;
+        cout << "Untuk Keluar `b` \nUntuk mengurutkan buku `s` \n>>> ";
 
         // mendapatkan index dari buku
         cin >> pilih_buku;
+        clear();
 
         try {
             // Convert string menjadi int
@@ -318,13 +327,20 @@ int lihat_buku(){
                 continue;
             
             // kaluar dari daftar buku
-            } else if (semua_buku.size() + 1) {
-                return 0;
+            } else {
+                continue;
             }
         } catch (invalid_argument& e){
-            // Menangkap bila terjadi salah input oleh user
-            cout << endl <<"invalid argument. \nTekan apa saja untuk melanjutkan" << endl;
-            cin >> line;
+            continue;
+            // // Menangkap bila terjadi salah input oleh user
+            // cout << endl <<"invalid argument. \nTekan apa saja untuk melanjutkan" << endl;
+            // cin >> line;
         }
     }
+    return 0;
+}
+
+void tambah_buku() {
+
+    
 }
