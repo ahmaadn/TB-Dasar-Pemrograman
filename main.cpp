@@ -23,9 +23,8 @@ struct Books {
 };
 
 void clear();
-bool cek_spasi(string teks);
 bool login();
-void daftar_akun();
+void buat_akun();
 vector<Books> list_buku();
 int lihat_buku();
 void update_buku();
@@ -57,7 +56,7 @@ int main(){
             }
             break;
         case '2':
-            daftar_akun();
+            buat_akun();
             break;
         case '3':
             cout << "Program Berhasil Keluar" << endl;
@@ -98,15 +97,6 @@ int main(){
 void clear(){
     // Untuk menghapus interface pada terminal
     cout << "\e[1;1H\e[2J";
-}
-
-bool cek_spasi(string teks) {
-    for (char c : teks) {
-        if (c == ' ') {
-            return true;
-        }
-    }
-    return false;
 }
 
 bool login(){
@@ -162,27 +152,22 @@ bool login(){
     return false;
 }
 
-void daftar_akun(){
+void buat_akun(){
     Users new_user;
-    int spasi;
-    
-    cout << "           Membuat akun Baru               " << endl
-         << "-------------------------------------------" << endl
-         << "Pastikan username dan password tida ada spasi." << endl;
+    string line;
+    fstream DB_USER;
+    DB_USER.open(DB_USER_NAME);
+    int i = 0;
 
-    while (true) {
+    do {
         bool terdaftar = false;
-        string line;
+        i++;
+        cout << "           Membuat akun Baru               " << endl
+             << "-------------------------------------------" << endl;
+        cout << "Username (new): "; cin >> new_user.username;
+        cout << "Password (new): "; cin >> new_user.password;
 
-        // Input Username
-        cout << "Username (new): "; 
-        cin >> new_user.username;
-
-        // lewari 1 baris
-        fstream DB_USER(DB_USER_NAME);
         getline(DB_USER, line);
-
-        // Mencari username yang sama
         while (getline(DB_USER, line)) {
             int pos = line.find(";");
             string usr = line.substr(0, pos);
@@ -191,40 +176,27 @@ void daftar_akun(){
                 break;
             }
         }
-        DB_USER.close();
 
-        if (terdaftar) {
-            cout << "Akun Telah terdaftar " << endl;
-            continue;
-        }
+        DB_USER.clear();
+        DB_USER.seekg(0, ios::beg);
+        clear();
 
-        // Jika tidak ada spasi dan panjang password lebih dari 5 maka berhenti
-        if (!cek_spasi(new_user.username) && new_user.username.length() > 5) {
+        if (!terdaftar) {
+            clear();
+            cout << "Pembuatan akun berhasil" << endl;
+            cout << "Silahkan login untuk melanjutkan" << endl;
+            DB_USER.close();
+            DB_USER.open(DB_USER_NAME, ios::app);
+            DB_USER << new_user.username << ";" << new_user.password << endl;
             break;
+        } else {
+            cout << "Pembuatan Akun Gagal" << endl;
+            cout << "Akun telah terdaftar silahkan coba username yang lain" << endl << endl;
         }
-        // Ulang input ketika username terdapat spasi dan kurang dari 5 huruf
-        cout << "Username tidak boleh pake spasi dan minimal ada 5 huruf" << endl;
-    }
 
-    while (true) {
-        // Input password
-        cout << "password (new): "; 
-        cin >> new_user.password;
-        
-        // Jika tidak ada spasi dan panjang password lebih dari 5 maka berhenti
-        if (!cek_spasi(new_user.password) && new_user.password.length() > 5) {
-            break;
-        }
-        // Ulang input ketika terdapat spasi dan password kurang dari 5 huruf 
-        cout << "Password tidak boleh pake spasi dan minimal ada 5 huruf" << endl;
-    }
-    cout << "Silahkan login untuk melanjutkan" << endl;
-
-    // simpan username dan password ke dalam databse
-    fstream DB_USER(DB_USER_NAME, ios::app);
-    DB_USER << new_user.username << ";" << new_user.password << endl;
-    DB_USER.close();
+    } while (i < 3) ;
 }
+
 
 vector<Books> list_buku(){
     fstream DB_BOOK(DB_BOOK_NAME);
@@ -238,15 +210,13 @@ vector<Books> list_buku(){
         stringstream ss(line);
         Books buku;
 
-        // Dapatkan semua informasi buku
-        // dan simpan ke variable buku
+        // Dapatkan semua informasi buku dan simpan ke variable buku
         getline(ss, buku.isbn, ';');
         getline(ss, buku.judul, ';');
         getline(ss, buku.penulis, ';');
         getline(ss, buku.tahun, ';');
         getline(ss, buku.halaman, ';');
         getline(ss, buku.penerbit);
-
         // simpan buku di all books
         semua_buku.push_back(buku);
     }
