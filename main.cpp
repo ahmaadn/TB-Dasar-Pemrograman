@@ -3,17 +3,18 @@
 #include <string>
 #include <sstream>
 #include <vector>
+
+#define DB_BUKU_NAME "data/buku.csv"
 #define DB_USER_NAME "data/user.csv"
-#define DB_BOOK_NAME "data/books.csv"
 
 using namespace std;
 
-struct Users {
+struct User {
     string username;
     string password;
 };
 
-struct Books {
+struct Buku {
     string isbn;
     string judul;
     string penulis;
@@ -22,78 +23,105 @@ struct Books {
     string penerbit;
 };
 
+
 void clear();
+string garis(int width = 50);
 bool login();
 void buat_akun();
-vector<Books> list_buku();
-void print_list_buku(vector<Books> &semua_buku);
-int lihat_buku();
-void update_buku();
+vector<Buku> list_buku();
+void print_buku(Buku &buku);
+void input_buku(Buku &buku);
+void input_buku(Buku &buku);
+void daftar_buku(string mode = "lihat");
 void tambah_buku();
-void delete_buku();
+void simpan_buku(vector<Buku> &semua_buku);
+
 
 int main(){
     bool auth = false, run = true;
     char pilih;
+    int index;
+
     clear();
-    while (run){
-        cout << endl;
-        cout << "       Selamat Datang Di Perpustakaan      " << endl;
-        cout << "-------------------------------------------" << endl;
-        cout << "Silahkan login terlebih dahulu untuk masuk \nke dalam perpustakaan" << endl;
-        cout << "atau daftar bila tidak mempunyai akun" << endl;
-        cout << "1) Login \n2) Daftar \n3) Keluar \n>>> ";
+    while (run) {
+        cout << endl << "Selamat Datang Di Perpustakaan" << endl
+             << garis() << endl
+             << "Silahkan login terlebih dahulu untuk masuk " << endl 
+             << "ke dalam perpustakaan atau daftar bila tidak" << endl 
+             << "mempunyai akun" << endl;
+        cout << "1) Login "<< endl 
+             << "2) Buat akun "<< endl 
+             << "3) Keluar "<< endl
+             << "pilih [1-3]? : ";
 
         cin >> pilih;
         clear();
 
-        switch (pilih)
-        {
-        case '1':
-            if (login())
-                auth = true;
-            break;
-        case '2':
-            buat_akun();
-            break;
-        case '3':
-            cout << "Program Berhasil Keluar" << endl;
-            return 0;
-        default:
-            break;
+        switch (pilih){
+            case '1':
+                if (login()){
+                    auth = true;
+                }
+                break;
+            case '2':
+                buat_akun();
+                break;
+            case '3':
+                return 0;
+            default:
+                break;
         }
-
         if (auth) {
-            cout << "Login telah berhasil" << endl
-                 << endl;
+            cout << "Login Berhasill" << endl << endl;
             break;
         }
     }
-
+    
     while (auth) {
-        cout << "       Selamat Datang Di Perpustakaan      " << endl;
-        cout << "-------------------------------------------" << endl;
-        cout << "1) Daftar Buku \n2) Tambah buku \n3) Update buku \n4) Delete buku " << endl;
-        cout << "pilih menu: ";
+        cout << "Selamat Datang Di Perpustakaan" << endl 
+             << garis() << endl;
+        cout << "1) Daftar buku " << endl 
+             << "2) Tambah buku " << endl 
+             << "3) Update buku " << endl 
+             << "4) Delete buku " << endl
+             << "5) Keluar " << endl
+             << "pilih [1-4]? : ";
 
         cin >> pilih;
         clear();
-        switch (pilih)
-        {
-        case '1':
-            lihat_buku();
-            break;
-        case '2':
-            tambah_buku();
-            break;
-        default:
-            break;
+
+        switch (pilih) {
+            case '1':
+                daftar_buku();
+                break;
+            case '2':
+                tambah_buku();
+                break;
+            case '3':
+                daftar_buku("update");
+            case '4':
+                daftar_buku("delete");
+                break;
+            case '5':
+                auth = false;
+                break;
+            default:
+                break;
         }
     }
+    
 }
 
 void clear(){
     cout << "\e[1;1H\e[2J";
+}
+
+string garis(int width){
+    string line = "";
+    for (int i = 0;i < width; i++){
+        line += "-";
+    }
+    return line;
 }
 
 bool login(){
@@ -101,38 +129,37 @@ bool login(){
     bool terdaftar = false;
     int i = 0;
 
-    // Kesempatan login sebanyak 3x
+    cin.ignore();
     while (i < 3){
-        Users auth_user;
+        User user;
         string line;
         i++;
-        cout << "                   Login                   " << endl
-             << "-------------------------------------------" << endl;
-        cout << "Username: ";   cin >> auth_user.username;
-        cout << "Password: ";   cin >> auth_user.password;
+        cout << endl << "LOGIN" << endl << garis(50)<< endl;
+        cout << "Username: "; getline(cin, user.username);
+        cout << "Password: "; getline(cin, user.password);
 
         clear();
-        getline(DB_USER, line);                 // lewati baris pertama
-        while (getline(DB_USER, line)) {        // Dapatkan username dan password setiap baris
-            int pos = line.find(";");           // Mencari password dan username
+        getline(DB_USER, line);
+        while (getline(DB_USER, line)) {
+            int pos = line.find(";");
             string usr = line.substr(0, pos);
             string pwd = line.substr(pos + 1);
 
-            if (auth_user.username == usr && auth_user.password == pwd){
+            if (user.username == usr && user.password == pwd){
                 terdaftar = true;
                 break;
             }
         }
 
-        DB_USER.clear();                        // Untuk Memindahkan pointer file ke posisi awal
+        DB_USER.clear();
         DB_USER.seekg(0, ios::beg);
 
         if (terdaftar) {
             DB_USER.close();
             return true;
         }
-        cout << "Password dan username salah silahkan coba lagi" << endl;
-        cout << "sisa percobaan: " << 3 - i << "x" << endl;
+        cout << "Password dan username salah silahkan coba lagi" << endl
+             << "sisa percobaan: " << 3 - i << "x" << endl;
     }
     DB_USER.close();
     clear();
@@ -140,26 +167,25 @@ bool login(){
 }
 
 void buat_akun(){
-    Users new_user;
+    fstream DB_USER(DB_USER_NAME);
+    User user_baru;
     string line;
-    fstream DB_USER;
-    DB_USER.open(DB_USER_NAME);
     int i = 0;
 
-    do{
+    cin.ignore();
+    do {
         bool terdaftar = false;
         i++;
-        cout << "           Membuat akun Baru               " << endl
-             << "-------------------------------------------" << endl;
-        cout << "Username (new): ";     cin >> new_user.username;
-        cout << "Password (new): ";     cin >> new_user.password;
+
+        cout << "BUAT AKUN" << endl << garis() << endl;
+        cout << "Username (new): "; getline(cin, user_baru.username);
+        cout << "Password (new): "; getline(cin, user_baru.password);
 
         getline(DB_USER, line);
         while (getline(DB_USER, line)){
             int pos = line.find(";");
             string usr = line.substr(0, pos);
-
-            if (usr == new_user.username){
+            if (usr == user_baru.username){
                 terdaftar = true;
                 break;
             }
@@ -171,12 +197,11 @@ void buat_akun(){
 
         if (!terdaftar){
             clear();
-            cout << "Pembuatan akun berhasil" << endl;
-            cout << "Silahkan login untuk melanjutkan" << endl;
+            cout << "Pembuatan akun berhasil" << endl
+                 << "Silahkan login untuk melanjutkan" << endl;
             DB_USER.close();
             DB_USER.open(DB_USER_NAME, ios::app);
-            DB_USER << new_user.username << ";" 
-                    << new_user.password << endl;
+            DB_USER << user_baru.username << ";" << user_baru.password << endl;
             break;
         } else {
             cout << "Pembuatan Akun Gagal" << endl
@@ -184,134 +209,159 @@ void buat_akun(){
                  << endl;
         }
 
-    }while (i < 3);
+    } while (i < 3);
 }
 
-vector<Books> list_buku() {
-    fstream DB_BOOK(DB_BOOK_NAME);
+vector<Buku> list_buku() {
+    fstream DB_BOOK(DB_BUKU_NAME);
+    vector<Buku> semua_buku;
     string line;
-    vector<Books> semua_buku;
 
-    getline(DB_BOOK, line);             // Melewati 1 baris
-    while (getline(DB_BOOK, line)){     // Dapatkan data setiap baris
+    getline(DB_BOOK, line);
+    while (getline(DB_BOOK, line)){
         stringstream ss(line);
-        Books buku;
-        // Dapatkan semua informasi buku dan simpan ke variable buku
+        Buku buku;
+
         getline(ss, buku.isbn, ';');
         getline(ss, buku.judul, ';');
         getline(ss, buku.penulis, ';');
         getline(ss, buku.tahun, ';');
         getline(ss, buku.halaman, ';');
         getline(ss, buku.penerbit);
-        // simpan buku di all books
         semua_buku.push_back(buku);
     }
     DB_BOOK.close();
     return semua_buku;
 }
 
-void print_list_buku(vector<Books> &semua_buku) {
-    cout << "No | Judul" << endl;
+void print_buku(Buku &buku) {
+    cout << "Judul      : " << buku.judul << endl
+         << "ISBN       : " << buku.isbn << endl
+         << "Penulis    : " << buku.penulis << endl
+         << "Tahun      : " << buku.tahun << endl
+         << "Halaman    : " << buku.halaman << endl
+         << "Penerbit   : " << buku.penerbit << endl;
+}
+
+void input_buku(Buku &buku) {
+    cout << "ISBN Buku : ";             getline(cin, buku.isbn);
+    cout << "Judul buku : ";            getline(cin, buku.judul);
+    cout << "Penulis buku : ";          getline(cin, buku.penulis);
+    cout << "Terbitan tahun : ";        getline(cin, buku.tahun);
+    cout << "Jumlah halaman buku : ";   getline(cin, buku.halaman);
+    cout << "Dari penerbit : ";         getline(cin, buku.penerbit);
+}
+
+void simpan_buku(vector<Buku> &semua_buku){
+    ofstream DB_BUKU(DB_BUKU_NAME, ios::trunc);
+
+    DB_BUKU << "isbn;judul;penulis;tahun;halaman;penerbit" << endl;
+
+    for (int i = 0; i < semua_buku.size(); i++){
+        Buku &buku = semua_buku[i];
+        DB_BUKU << buku.isbn << ";"
+                << buku.judul << ";"
+                << buku.penulis << ";"
+                << buku.tahun << ";"
+                << buku.halaman << ";"
+                << buku.penerbit << endl;
+    }
+    DB_BUKU.close();
+}
+
+void print_semua_buku(vector<Buku> &semua_buku){
     if (semua_buku.empty()){
-        string line;
-        cout << "           --- TIDAK ADA BUKU ---          " << endl
-             << "Silahkan menambahkan buku terlebih dahulu untuk \nmelihat buku" << endl
-             << endl << "Input apa saja untuk melanjutkan\n>>> ";
-        cin >> line;
-        clear();
+        cout << "Buku tidak tesedia" << endl 
+             << "Silahkan tambahkan buku terlebih dahulu" << endl;
     } else {
-        for (int i = 0; i < semua_buku.size(); i++){
-            cout << i + 1 << "  | " << semua_buku[i].judul << endl;
+        cout << "NO  | JUDUL" << endl;
+        for (int i=1; i<=semua_buku.size();i++){
+            cout << i << "   " << semua_buku[i-1].judul << endl;
         }
     }
+
 }
 
-int lihat_buku(){
+void daftar_buku(string mode){
+    string line;
     while (true){
-        vector<Books> semua_buku = list_buku();
-        string pilih;
+        vector<Buku> semua_buku = list_buku();
+        int size = semua_buku.size();
+        int pilih;
 
         clear();
-        cout << "                Daftar Buku                " << endl
-             << "-------------------------------------------" << endl;
+        cout << "Daftar buku" << endl << garis() << endl;
+        print_semua_buku(semua_buku);
+        cout << endl;
 
-        // Memanggil fungsi untuk menampilkan semua list buku
-        print_list_buku(semua_buku);
-        // Jika tidak ada buku maka kembali ketampilan awal
         if (semua_buku.empty()){
-            return 0;
+            break;
         }
 
-        cout << "Pilih index 1-" << semua_buku.size() 
-             << " untuk melihat detail buku" << endl
-             << "Untuk Keluar: b \nUntuk mengurutkan buku: s "<< endl
-             << ">>> ";
-        cin >> pilih;
+        if (mode == "update") {
+            cout << "Pilih index 1-" << size << " untuk di update buku" << endl;
+        } else if (mode == "deletr") {
+            cout << "Pilih index 1-" << size << " untuk di delete buku" << endl;
+        } else {
+            cout << "Pilih index 1-" << size << " untuk melihat detail buku" << endl;
+        }
+
+        cout << "Keluar:  " << size + 1 << endl 
+             << "urutkan buku: " << size + 2 << endl
+             << "pilih [1-" << size + 2 << "]? : ";
+        
+        if (!(cin >> pilih)) {
+            cin.clear();
+            cin.ignore();
+        }
+        
         clear();
 
-        if (pilih == "b"){
-            return 0;
-        } else if (pilih == "s") {
-            continue;
-        }
+        if (pilih >= 1 && pilih <= size) {
+            Buku &buku = semua_buku[pilih-1];
+            cout << endl << "BUKU " << buku.judul 
+                 << endl << garis() << endl;
+            print_buku(buku);
 
-        try {
-            // Convert string menjadi int
-            int pilihan = stoi(pilih);
-            // plihan 1 dan tidak lebih dari jumlah buku
-            if (pilihan >= 1 && pilihan <= semua_buku.size()) {
-                // Mendapatkan buku by index
-                Books curr_buku = semua_buku[pilihan - 1];
-                // Print Informasi buku
-                cout << "                   Buku                    " << endl
-                     << "-------------------------------------------" << endl;
-                cout << "Judul: " << curr_buku.judul << endl
-                     << "ISBN: " << curr_buku.isbn << endl
-                     << "Penulis:" << curr_buku.penulis << endl
-                     << "Tahun: " << curr_buku.tahun << endl
-                     << "Halaman: " << curr_buku.halaman << endl
-                     << "Penerbit: " << curr_buku.penerbit << endl;
+            if (mode == "update") {
+                cout << endl << "Buku yang dipilih" 
+                     << endl << "Inputkan data untuk update buku" << endl;
 
-                // tekan apa saja
-                cout << endl
-                     << "Input apa saja untuk melanjutkan \n>>> ";
-                cin >> pilih;
+                cin.ignore();
+                input_buku(buku);
+                simpan_buku(semua_buku);
+
+            } else if ( mode == "delete") {
+                semua_buku.erase(semua_buku.begin() + (pilih - 1));
+                simpan_buku(semua_buku);
+                cout << "Buku berhasil di hapus" << endl;
+            } else {
+                cout << endl << "Input apa saja untuk melanjutkan "<< endl << ">>> ";
+                cin >> line;
             }
-            continue;
-        }
-        catch (invalid_argument &e){
+
+        } else if (pilih == size + 1) {
+            break;
+        } else if (pilih == size + 2) {
             continue;
         }
     }
-    return 0;
 }
 
-void tambah_buku(){
+void tambah_buku() {
+    vector<Buku> semua_buku = list_buku();
     char ulang;
-    do{
-        Books buku_baru;
-        fstream DB_BOOK(DB_BOOK_NAME, ios::app);
-        cin.ignore();
-        cout << "               Buat buku baru              " << endl
-             << "-------------------------------------------" << endl;
+    do {
+        Buku buku_baru;
+        cin.ignore(); 
+        cout << "Tambah buku" << endl << garis() << endl;
         cout << "Inputkan Data Buku Dibawah" << endl;
-        cout << "ISBN Buku : ";             getline(cin, buku_baru.isbn);
-        cout << "Judul buku : ";            getline(cin, buku_baru.judul);
-        cout << "Penulis buku : ";          getline(cin, buku_baru.penulis);
-        cout << "Terbitan tahun : ";        getline(cin, buku_baru.tahun);
-        cout << "Jumlah halaman buku : ";   getline(cin, buku_baru.halaman);
-        cout << "Dari penerbit : ";         getline(cin, buku_baru.penerbit);
-
-        DB_BOOK << buku_baru.isbn << ";"
-                << buku_baru.judul << ";"
-                << buku_baru.penulis << ";"
-                << buku_baru.tahun << ";"
-                << buku_baru.halaman << ";"
-                << buku_baru.penerbit << ";"
-                << endl;
+        input_buku(buku_baru);
+        semua_buku.push_back(buku_baru);
 
         cout << "Apakah Anda Akan Meng-Input Data Lagi (y/n)? ";
         cin >> ulang;
         clear();
     } while (ulang == 'y' || ulang == 'Y');
+    simpan_buku(semua_buku);
 }
