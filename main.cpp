@@ -28,6 +28,7 @@ void input_buku(Buku &buku);
 void simpan_buku(vector<Buku> &semua_buku);
 void sort_buku(vector<Buku> &semua_buku);
 
+char username[100], password[100];
 
 int get_index(string prompt = ">>> "){
     int index;
@@ -40,8 +41,6 @@ int get_index(string prompt = ">>> "){
     }
     return index;
 }
-
-char username[100], password[100];
 
 int main(){
     bool auth = false;
@@ -82,7 +81,7 @@ int main(){
             break;
         }
     }
-    
+
     while (auth) {
         vector<Buku> semua_buku = list_buku();      // Mendapatkan semua buku
         int size = semua_buku.size();               // Jumlah buku
@@ -95,7 +94,7 @@ int main(){
         } else {
             cout << "NO  | JUDUL" << endl;
             for (int i=1; i<=semua_buku.size();i++){
-                cout << i << "   " << semua_buku[i-1].judul << endl;
+                cout << i << "    " << semua_buku[i-1].judul << endl;
             }
 
             cout << endl << "Pilih 1 - " << size 
@@ -356,7 +355,7 @@ void simpan_buku(vector<Buku> &semua_buku){
 void sort_buku(vector<Buku> &semua_buku){
     int n = semua_buku.size();
     for (int i = 1; i < n; i++) {
-        Buku key = semua_buku[i];
+        Buku &key = semua_buku[i];
         int j = i - 1;
 
         while (j >= 0 && semua_buku[j].judul > key.judul) {
