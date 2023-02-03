@@ -191,7 +191,7 @@ int main(){
         } else if (index == size + 4) {
             clear();
             sort_buku(semua_buku);
-            cout << "Sorting berhasil bedasarkan Judul dan ASCII table" << endl << endl;
+            cout << "Sorting berhasil bedasarkan Judul berhasil" << endl << endl;
             simpan_buku(semua_buku);
         }
     }
