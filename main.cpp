@@ -47,7 +47,7 @@ int main(){
     char pilih;
 
     clear();
-    while (true) {
+    while (!auth) {
         cout << endl << "Selamat Datang Di Perpustakaan" << endl
              << garis() << endl
              << "Silahkan login terlebih dahulu untuk masuk " << endl 
@@ -64,6 +64,7 @@ int main(){
                 clear();
                 if (login()){
                     auth = true;
+                    cout << "Login Berhasill" << endl << endl;
                 }
                 break;
             case '2':
@@ -75,10 +76,6 @@ int main(){
                 return 0;
             default:
                 break;
-        }
-        if (auth) {
-            cout << "Login Berhasill" << endl << endl;
-            break;
         }
     }
 
@@ -93,7 +90,7 @@ int main(){
                  << "Silahkan tambahkan buku terlebih dahulu" << endl;
         } else {
             cout << "NO  | JUDUL" << endl;
-            for (int i=1; i<=semua_buku.size();i++){
+            for (int i=1; i<=size; i++){
                 cout << i << "    " << semua_buku[i-1].judul << endl;
             }
 
@@ -111,10 +108,13 @@ int main(){
 
         // Detail buku
         if (index >= 1 && index <= size){
-            Buku &buku = semua_buku[pilih-1];
+            clear();
+            Buku &buku = semua_buku[index-1];
             cout << endl << "BUKU " << buku.judul 
                  << endl << garis() << endl;
             print_buku(buku);
+            cout << endl << "Input apa saja untuk melanjutkan : ";
+            cin >> pilih;
 
         // Tambah buku
         } else if (index == size + 1) {
@@ -216,7 +216,6 @@ bool login(){
 
     cin.ignore();
     while (i < 3){
-        char username[255], password[255];
         string line;
         i++;
         cout << endl << "LOGIN" << endl << garis(50)<< endl;
