@@ -285,6 +285,7 @@ void buat_akun(){
             DB_USER.close();
             DB_USER.open(DB_USER_NAME, ios::app);
             DB_USER << username << ";" << password << endl;
+            DB_USER.close();
             break;
         } else {
             cout << "Pembuatan Akun Gagal" << endl
