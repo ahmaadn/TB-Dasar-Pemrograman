@@ -3,7 +3,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
-
+#include <stdlib.h>
 #define DB_BUKU_NAME "buku.csv"
 #define DB_USER_NAME "user.csv"
 
@@ -30,9 +30,9 @@ void sort_buku(vector<Buku> &semua_buku);
 
 char username[100], password[100];
 
-int get_index(string prompt = ">>> "){
+int get_index(int prompt){
     int index;
-    cout << prompt;
+    cout << "Pilih [1-" << prompt << "]? : ";
     if (!(cin >> index)) {
         cin.clear();
         cin.ignore();
@@ -72,7 +72,7 @@ int main(){
                 buat_akun();
                 break;
             case '3':
-                cout << endl << "program keluar" << endl;
+                cout << endl << "program keluar terima kasih telah berkunjung" << endl;
                 return 0;
             default:
                 break;
@@ -104,7 +104,7 @@ int main(){
              << "   Sort buku    : " << size + 4 << endl 
              << "   Keluar       : " << size + 5 << endl << endl;
 
-        index = get_index("Pilih [1-" + to_string(size + 4) + "]? : ");
+        index = get_index(size + 4);
 
         // Detail buku
         if (index >= 1 && index <= size){
@@ -136,7 +136,7 @@ int main(){
         
         // Keluar program
         } else if (index == size + 5) {
-            cout << endl << "program keluar" << endl;
+            cout << endl << "program keluar terima kasih telah berkunjung" << endl;
             auth = false;
             break;
 
@@ -148,7 +148,7 @@ int main(){
 
         // Update dan Delete Buku
         } else if (index >= size + 2 && index <= size + 3) {
-            int pilih = get_index("Pilih buku [1-" + to_string(size) + "]? : ");
+            int pilih = get_index(size);
             
             // jika `pilih` lebih dari sama dengan 1 dan kurang sama dengan jumlah buku
             // maka jalankan statement 
@@ -198,7 +198,7 @@ int main(){
 }
 
 void clear(){
-    cout << "\e[1;1H\e[2J";
+    system("cls");
 }
 
 string garis(int width){
