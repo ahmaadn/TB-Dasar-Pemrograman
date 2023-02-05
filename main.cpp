@@ -355,7 +355,7 @@ void simpan_buku(vector<Buku> &semua_buku){
 void sort_buku(vector<Buku> &semua_buku){
     int n = semua_buku.size();
     for (int i = 1; i < n; i++) {
-        Buku &key = semua_buku[i];
+        Buku key = semua_buku[i];
         int j = i - 1;
 
         while (j >= 0 && semua_buku[j].judul > key.judul) {
