@@ -148,10 +148,10 @@ int main(){
 
         // Update dan Delete Buku
         } else if (index >= size + 2 && index <= size + 3) {
-            int pilih = get_index(size);
             
-            // jika `pilih` lebih dari sama dengan 1 dan kurang sama dengan jumlah buku
-            // maka jalankan statement 
+            cout << endl << "Pilih buku 1 - " << size << endl;
+            int pilih = get_index(size);
+
             if (pilih >= 1 && pilih <= size) {
                 // mendapatkan index buku
                 Buku &buku = semua_buku[pilih-1];
